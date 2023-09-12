@@ -1,0 +1,83 @@
+---
+title: "Case Study Report"
+author: "Nathan Harding"
+date: "2023-09-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Bellabeat Case Study
+
+## Summary / Ask
+
+This case study emulates being a data analyst for Bellabeat, a manufacturer of health-focused products for women. The scenario is looking to analyze smart device fitness data to find new growh opportunities for the company. There were a few products to choose from to highlight, and I chose the Bellabeat app. The Bellabeat app connects to their line of welness products and gives users health data on metrics like activity, sleep, and stress, highlighting current habits and avenues for healthy decisions.
+
+The problem I tried to solve was to find trends that jumped out at me in the data and investigate them further. For a company trying to build a bigger market share, I recognized that these insights could drive business decisions to find new users and/or improve the experience for existing users.
+
+## The Data
+
+The data analyzed for this case study is a repository of FitBit Fitness Tracker Data, a public domain dataset made available throug Mobius. Thirty-three FitBit users consented to the submission of personal tracker data from their devices. The data included was extensive, ranging from minute-level data to daily activity.
+
+The data was downloaded from Kaggle, and I began by just opening the CSV's and familiarizing myself with the data. There was a lot of data to take in, but thankfully it was very organized from the beginning. A sample size of only 33 users worried me at first, but I quickly realized that most of the users sampled fell into the average range of users, with a pretty equal amount of users on both sides of the activity spectrum.
+
+In my initial scanning of the data, I focused on searching for things like incomplete data and formatting issues, finding very little. Even though the data is from a different company, the similar style of devices makes it perfect for analyzing the habits of people who use this type of device.
+
+## The Process
+
+The tools I used for this project were SQL, R, and Sheets. I began my work in Excel, but only used it for initial viewing and changing of one column before importing to BigQuery. I began by narrowing down the data that I was going to use. In analyzing trends with the app, I was not very interested in the minute-level and hourly data provided in the dataset.
+
+Upon importing the CSV's into BigQuery, I kept encountering an error with the DateTime field in Excel for a few of the files. I changed those columns to just date, seeing as how the time part of the entry was irrelevant to my analysis. Once the data was all in BigQuery, I queried every table to make sure the user count was consistent across all tables. I also spent some time joining various tables together to look for trends in the data. I documented this whole process in a separate notepad file to keep track for my own sake.
+
+## The Analysis
+
+This step was performed with SQL and R. I organized the data for analysis by saving views of queries that presented the data I needed to analyze. This allowed me to export those views as CSV's for easy import into R for visualizations. I made sure the data was properly formatted by making sure aggregate functions had aliases so it was easy to know what column contained what information, no matter what tool I was working in.
+
+One of the first things I visualized in R was where the users' activity fell in relation to each other. I installed the necessary packages, imported the CSV's I exported with BigQuery, and created a scatter plot with the axes being total steps in the month and amount of sedentary minutes.
+
+```{r}
+install.packages("tidyverse")
+install.packages("readr")
+library(tidyverse)
+library(readr)
+library(ggplot2)
+
+daily_activity_summed_grouped <- read_csv("daily_activity_summed_grouped_2.csv")
+weight_auto_manual_log <- read_csv("weight_auto_manual_log.csv")
+intensities_vs_sleep_days <- read_csv("intensities_vs_sleep_days.csv")
+total_steps_vs_total_sleep <- read_csv("total_steps_vs_total_sleep.csv")
+
+ggplot(data = daily_activity_summed_grouped) +
+  geom_point(mapping = aes(x = total_steps, y = sedentary_minutes))
+```
+
+This highlighted the integrity of the data by showing most of the users fell in what I could call an average metric, with most points being central on the plot. This needed validating to me because in analyzing health data with fitness metrics, it could be easy to only focus on more active users, considering they likely have more data to work with.
+
+The biggest surprise I noticed in the data, and became the focus of my analysis, was how under-utilized the sleep and weight tracking features were compared to things like activity and intensities. Of the 33 users tracked, 24 tracked sleep data with only 12 of those users tracking more than 20 times in the month. Only 8 users tracked weight in that time frame, with only two of them logging their weight more than five times. 
+
+In going deeper down that trend, I noticed that more active users tended to track their sleep more often.
+
+```{r}
+ggplot(data = intensities_vs_sleep_days) +
+  geom_point(mapping = aes(x = lightly_active_minutes, y = days_sleep_tracked))
+```
+
+In narrowing down the weight tracking data, I discovered just how under-utilized that feature was.
+
+```{r}
+as_tibble(weight_auto_manual_log)
+```
+
+With my focus being on the Bellabeat app, I related these findings to the original question by finding an area of the app we could improve traffic to.
+
+## What We Can Do
+
+My final conclusion based on the analysis was that there was things we could do to improve awareness of these important health metrics. Considering most data in the app is automatically pulled from their device, perhaps we just need to raise awareness about these under-utilized features. We could create content detailing the importance of tracking your sleep and weight, and inform users of best practices in logging these metrics.
+
+One unknown in the data is if there is a way to log sleep manually within the app. The FitBit data had a boolean column to note whether weight data was manually or automatically logged, and the sleep table had no such column. Because users tend to charge their device overnight or simply do not wear it while sleeping, perhaps development of a way to manually track sleep data is necessary.
+
+In order to drive traffic to these features, we could introduce push notifications reminding users to track their sleep and weight if they haven't yet. Since these metrics are tracked differently, we could do the sleep data notification in the morning if not already logged, and the weight data notification once or twice a week.
+
+I did create a brief presentation for this report. [link](https://docs.google.com/presentation/d/1fHNVvgU__Ora_Mg3gipYwlMVF-gO3_zfUU7_ZPPO6Ow/edit?usp=sharing)
